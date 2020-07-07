@@ -10,7 +10,6 @@ requires 'JSON::MaybeXS';
 requires 'List::Flatten';
 requires 'List::MoreUtils';
 requires 'Modern::Perl';
-requires 'Modern::Perl';
 requires 'Module::Runtime';
 requires 'Process::Status';
 requires 'Safe::Isa';
