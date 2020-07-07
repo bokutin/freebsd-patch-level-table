@@ -9,12 +9,6 @@ use JSON::MaybeXS qw(:legacy);
 use List::MoreUtils qw(mesh);
 use POSIX qw(strftime);
 
-sub p0000 {
-    my $str = $_[0];
-    $str =~ s/\bp(\d+)/sprintf("p%04d", $1)/e;
-    $str;
-}
-
 sub str2time2ymd {
     my $str = shift;
     my $val = str2time($str) or return;

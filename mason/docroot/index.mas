@@ -101,7 +101,7 @@
           <td><% $item->{datetime} %></td>
           <td>
             % for my $item (@items) {
-            <a href="https://www.freebsd.org/security/advisories/<% $item->{asc} %>"><% $item->{asc} %></a><br>
+              <a href="https://www.freebsd.org/security/advisories/<% $item->{asc} %>"><% $item->{asc} %></a><br>
             % }
           </td>
           <td>
