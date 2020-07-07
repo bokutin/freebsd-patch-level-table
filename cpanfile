@@ -1,0 +1,21 @@
+requires 'App::RunCron';
+requires 'Catalyst::Runtime';
+requires 'Catalyst::Plugin::Static::Simple';
+requires 'Class::Load';
+requires 'Config::Merged';
+requires 'Date::Parse';
+requires 'HTML::TableExtract';
+requires 'IO::All';
+requires 'JSON::MaybeXS';
+requires 'List::Flatten';
+requires 'List::MoreUtils';
+requires 'Modern::Perl';
+requires 'Modern::Perl';
+requires 'Module::Runtime';
+requires 'Process::Status';
+requires 'Safe::Isa';
+requires 'String::ShellQuote';
+requires 'Time::Duration';
+
+# https://bokut.in/darkpan/authors/id/B/BO/BOKUTIN/HTML-MasonX-BOKUTIN-0.28.tar.gz
+requires 'HTML::MasonX::BOKUTIN';

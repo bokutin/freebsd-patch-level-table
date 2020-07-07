@@ -1,0 +1,10 @@
+<%perl>
+  if ( $m->dhandler_arg =~ m{^([^./]+\.jsonl)\.mas$} ) {
+    my $file = catfile container('config')->{project_dir}, $1;
+    if ( -f $file ) {
+      $c->serve_static_file($file);
+      $c->detach;
+    }
+  }
+  $m->decline;
+</%perl>

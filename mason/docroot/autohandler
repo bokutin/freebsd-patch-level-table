@@ -1,0 +1,5 @@
+<%flags>
+  inherit => "/layout/bootstrap.mas"
+</%flags>
+<%method head_html></%method>
+% $m->call_next;

@@ -1,0 +1,18 @@
+<%flags>
+  inherit => undef
+</%flags>
+<%perl>
+  eval {
+    my $comp_path = ("/docroot/".$c->req->path) =~ s{/$}{/index}r =~ s{$}{.mas}r;
+    $m->make_subrequest(comp=>$comp_path, out_method => $m->out_method)->exec;
+  };
+  if (my $err = $@) {
+    if ($err->$_isa('HTML::Mason::Exception::TopLevelNotFound')) {
+      my $code = 404;
+      $c->res->status($code);
+      $c->res->body("$code @{[ status_message 404 ]}");
+      $c->detach;
+    }
+    $err->rethrow;
+  }
+</%perl>

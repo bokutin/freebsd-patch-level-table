@@ -1,0 +1,26 @@
+<%perl>
+  $c->res->content_type("text/html") unless $c->res->content_type;
+  my $base = $c->uri_for("/");
+</%perl>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="robots" content="all">
+    <& SELF:head_html &>
+    <script                 src="<% $base %>static/contrib/jquery-1.12.4.min.js"></script>    
+    <link rel="stylesheet" href="<% $base %>static/contrib/bootstrap-3.3.6-dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="<% $base %>static/contrib/bootstrap-3.3.6-dist/css/bootstrap-theme.min.css">
+    <script                 src="<% $base %>static/contrib/bootstrap-3.3.6-dist/js/bootstrap.min.js"></script>
+    <style>
+      .page-header { margin-top: 30px }
+    </style>
+  </head>
+  <body>
+    % $m->call_next;
+  </body>
+</html>

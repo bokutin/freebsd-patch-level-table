@@ -1,0 +1,207 @@
+<%shared>
+  my $dir = container('config')->{project_dir} or die;
+  my $io  = io->catfile($dir,"freebsd-patch-level-table.jsonl");
+  die $io unless $io->exists;
+</%shared>
+<%method head_html>
+  <meta name="date" content="<% strftime "%Y-%m-%dT%H:%M:%S+09:00", localtime $io->mtime %>" />
+  <title>FreeBSD Patch Level Table</title>
+</%method>
+<%perl>
+  my sub duration { Time::Duration::duration(@_) }
+  my sub d000 { $_[0] =~ s/(\d+)/sprintf "%09d", $1/ger }
+
+  my @items    = map from_json($_), $io->slurp;
+  my @branches = uniq sort { d000($a) cmp d000($b) } map $_->{branch}, @items;
+
+  my sub branches {
+    @branches;
+  }
+  my sub tags {
+    my ($branch) = @_;
+    my @items = grep $_->{branch} eq $branch, @items;
+    my @tags  = uniq sort { d000($a) cmp d000($b) } map $_->{tag}, @items;
+  }
+  my sub find {
+    my ($branch, $tag) = @_;
+    my @items = grep $_->{branch} eq $branch && $_->{tag} eq $tag, @items;
+  }
+
+  my @headers     = qw(Branch Release Type Release Date EoL);
+  my @supported   = map from_json $_, io->catfile($dir,"supported.jsonl")->slurp;
+  my @unsupported = map from_json $_, io->catfile($dir,"unsupported.jsonl")->slurp;
+</%perl>
+<div class="container">
+  <div class="page-header">
+    <h1>FreeBSD Patch Level Table</h1>
+    % my $language = $m->comp("/util/lang.mas");
+    % if ($language eq 'ja') {
+      <p class="lead">
+        <a href="https://www.freebsd.org/security/advisories.html">FreeBSD Security Advisories</a> からパースした非公式のものです。
+      </p>
+      生成日時: <% strftime "%Y-%m-%d %H:%M:%S JST", localtime $io->mtime %>
+    % } else {
+      <p class="lead">
+        It is parsed from 
+        <a href="https://www.freebsd.org/security/advisories.html">FreeBSD Security Advisories</a>
+        and displayed. This is an unofficial website.
+      </p>
+      created_at: <% strftime "%Y-%m-%dT%H:%M:%S%z", localtime $io->mtime %>
+    % }
+  </div>
+
+  <ul>
+    % for my $branch (branches()) {
+      % my @tags = tags($branch);
+      <li><a href="#<% $branch %>"><% $branch %></a></li>
+    % }
+  </ul>
+  <ul>
+    <li><a href="#supported">Supported</a></li>
+  </ul>
+  <ul>
+    <li><a href="#unsupported">Unsupported</a></li>
+  </ul>
+
+  % for my $branch (branches()) {
+    % my @ave;
+    <a name="<% $branch %>"></a>
+    <h3><% $branch %></h3>
+    <table class="table table-striped table-bordered table-hover table-condensed">
+      <thead>
+        <tr>
+          <th style="width: 25%">
+            tag
+          </th>
+          <th style="width: 25%">
+            datetime
+          </th>
+          <th style="width: 25%">
+            asc
+          </th>
+          <th style="width: 25%">
+            recents
+          </th>
+        </tr>
+      </thead>
+
+      % my $prev;
+      % for my $tag (tags($branch)) {
+        <%perl>
+          my @items = find($branch,$tag); 
+          my $item  = $items[0];
+          my $cur  = do {
+            if ($tag =~ /\bRELEASE\b/) {
+              str2time($item->{datetime});
+            }
+          };
+        </%perl>
+        <tr>
+          <td><% $tag %></td>
+          <td><% $item->{datetime} %></td>
+          <td>
+            % for my $item (@items) {
+            <a href="https://www.freebsd.org/security/advisories/<% $item->{asc} %>"><% $item->{asc} %></a><br>
+            % }
+          </td>
+          <td>
+            % if ($cur and $prev) {
+              <% duration $cur - $prev, 1 %>
+              % push @ave, $cur - $prev;
+            % }
+          </td>
+        </tr>
+        % if ($tag =~ /\bRELEASE\b/) {
+          % $prev = $cur;
+        % }
+      % }
+      % if (@ave and grep { $_->{Branch} eq $branch } @supported) {
+        % my $ave = sum(@ave)/@ave;
+        <tr>
+          <td>
+          </td>
+          <td>
+            <% strftime '%Y-%m-%d %H:%M:%S UTC', gmtime $prev + $ave %>
+          </td>
+          <td>
+            ??
+          </td>
+          <td>
+            ave: <% duration $ave, 1 %>
+          </td>
+        </tr>
+      % }
+    </table>
+  % }
+  <p style="margin-top: -15px; margin-left: 5px">
+    <a href="freebsd-patch-level-table.jsonl">freebsd-patch-level-table.jsonl</a>
+  </p>
+
+  <hr>
+
+  <a name="supported"></a>
+  <h2>Supported FreeBSD Releases
+    <small>
+      <a href="https://www.freebsd.org/security/security.html">
+        https://www.freebsd.org/security/security.html
+      </a>
+    </small>
+  </h2>
+  <table class="table table-striped table-bordered table-hover table-condensed">
+    <thead>
+      <tr>
+        % for my $col (@headers) {
+          <th style="width: <% 100/@headers %>%">
+            <% $col %>
+          </th>
+        % }
+      </tr>
+    </thead>
+    % for my $row (@supported) {
+      <tr>
+        % for my $col (@headers) {
+          <td>
+            <% $row->{$col} %>
+          </td>
+        % }
+      </tr>
+    % } 
+  </table>
+  <p style="margin-top: -15px; margin-left: 5px">
+    <a href="supported.jsonl">supported.jsonl</a>
+  </p>
+
+  <hr>
+
+  <a name="unsupported"></a>
+  <h2>Unsupported FreeBSD Releases
+    <small>
+      <a href="https://www.freebsd.org/security/unsupported.html">
+        https://www.freebsd.org/security/unsupported.html
+      </a>
+    </small>
+  </h2>
+  <table class="table table-striped table-bordered table-hover table-condensed">
+    <thead>
+      <tr>
+        % for my $col (@headers) {
+          <th style="width: <% 100/@headers %>%">
+            <% $col %>
+          </th>
+        % }
+      </tr>
+    </thead>
+    % for my $row (@unsupported) {
+      <tr>
+        % for my $col (@headers) {
+          <td>
+            <% $row->{$col} %>
+          </td>
+        % }
+      </tr>
+    % } 
+  </table>
+  <p style="margin-top: -15px; margin-left: 5px">
+    <a href="unsupported.jsonl">unsupported.jsonl</a>
+  </p>
+</div>

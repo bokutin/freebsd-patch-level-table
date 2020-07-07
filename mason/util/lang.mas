@@ -1,0 +1,6 @@
+<%perl>
+  require I18N::AcceptLanguage;
+  my $acceptor = I18N::AcceptLanguage->new;
+  my $language = $acceptor->accepts($c->req->env->{HTTP_ACCEPT_LANGUAGE}, [qw(ja en)]);
+  return $language;
+</%perl>
